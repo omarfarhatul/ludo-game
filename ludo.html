@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ludo Game - Play with Friends</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .game-wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .board-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .ludo-board {
+            display: grid;
+            grid-template-columns: repeat(15, 40px);
+            grid-template-rows: repeat(15, 40px);
+            gap: 0;
+            border: 3px solid #333;
+            background: #f0f0f0;
+            position: relative;
+        }
+
+        .square {
+            border: 1px solid #ddd;
+            position: relative;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        /* Red Player (Top-Left) */
+        .red-home {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+        }
+
+        /* Yellow Player (Top-Right) */
+        .yellow-home {
+            background: linear-gradient(135deg, #ffd93d 0%, #ffb700 100%);
+        }
+
+        /* Green Player (Bottom-Right) */
+        .green-home {
+            background: linear-gradient(135deg, #6bcf7f 0%, #4caf50 100%);
+        }
+
+        /* Blue Player (Bottom-Left) */
+        .blue-home {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a5a5 100%);
+        }
+
+        .safe-zone {
+            border: 2px dashed #999;
+        }
+
+        .safe-zone::after {
+            content: '★';
+            color: gold;
+            font-size: 16px;
+        }
+
+        .piece {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid white;
+            cursor: pointer;
+            position: absolute;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .piece:hover {
+            transform: scale(1.15);
+        }
+
+        .red-piece {
+            background: #ff6b6b;
+        }
+
+        .yellow-piece {
+            background: #ffd93d;
+        }
+
+        .green-piece {
+            background: #6bcf7f;
+        }
+
+        .blue-piece {
+            background: #4ecdc4;
+        }
+
+        .sidebar {
+            width: 250px;
+        }
+
+        .players-info {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #eee;
+        }
+
+        .players-info h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .player {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        .player.active {
+            transform: translateX(5px);
+        }
+
+        .player-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .player.red {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .player.red .player-indicator {
+            background: #ff6b6b;
+        }
+
+        .player.yellow {
+            background: rgba(255, 217, 61, 0.1);
+        }
+
+        .player.yellow .player-indicator {
+            background: #ffd93d;
+        }
+
+        .player.green {
+            background: rgba(107, 207, 127, 0.1);
+        }
+
+        .player.green .player-indicator {
+            background: #6bcf7f;
+        }
+
+        .player.blue {
+            background: rgba(78, 205, 196, 0.1);
+        }
+
+        .player.blue .player-indicator {
+            background: #4ecdc4;
+        }
+
+        .controls {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #eee;
+        }
+
+        .controls h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .dice-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .dice {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 2px solid #333;
+            border-radius: 8px;
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin: 0 auto;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .dice:active {
+            transform: scale(0.95);
+        }
+
+        .dice:hover {
+            transform: scale(1.05);
+        }
+
+        .dice.rolling {
+            animation: diceRoll 0.6s ease-in-out;
+        }
+
+        @keyframes diceRoll {
+            0%, 100% { transform: rotateY(0deg) rotateX(0deg); }
+            50% { transform: rotateY(180deg) rotateX(180deg); }
+        }
+
+        .message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        @media (max-width: 768px) {
+            .game-wrapper {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            .ludo-board {
+                grid-template-columns: repeat(15, 30px);
+                grid-template-rows: repeat(15, 30px);
+            }
+
+            .square {
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎲 LUDO GAME 🎲</h1>
+            <p>Play with Friends Online</p>
+        </div>
+
+        <div class="game-wrapper">
+            <div class="board-container">
+                <div class="ludo-board" id="ludoBoard"></div>
+            </div>
+
+            <div class="sidebar">
+                <div class="players-info">
+                    <h3>Players</h3>
+                    <div class="player red active">
+                        <div class="player-indicator"></div>
+                        <span>Player 1</span>
+                    </div>
+                    <div class="player yellow">
+                        <div class="player-indicator"></div>
+                        <span>Player 2</span>
+                    </div>
+                    <div class="player green">
+                        <div class="player-indicator"></div>
+                        <span>Player 3</span>
+                    </div>
+                    <div class="player blue">
+                        <div class="player-indicator"></div>
+                        <span>Player 4</span>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <h3>Dice Roll</h3>
+                    <div class="dice-container">
+                        <div class="dice" id="dice">1</div>
+                    </div>
+                    <div class="message info" id="message">
+                        Red Player's Turn - Roll the Dice!
+                    </div>
+                    <button onclick="rollDice()" style="width: 100%; padding: 12px; margin-top: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer;">Roll Dice</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = {
+            currentPlayer: 0,
+            players: ['red', 'yellow', 'green', 'blue'],
+            pieces: {
+                red: [0, 0, 0, 0],
+                yellow: [0, 0, 0, 0],
+                green: [0, 0, 0, 0],
+                blue: [0, 0, 0, 0]
+            },
+            lastDice: 0
+        };
+
+        const BOARD_SIZE = 15;
+        const TOTAL_SQUARES = 52;
+        const HOME_POSITIONS = {
+            red: { start: 0, home: [0, 1, 15, 16] },
+            yellow: { start: 13, home: [13, 14, 182, 183] },
+            green: { start: 26, home: [209, 210, 224, 225] },
+            blue: { start: 39, home: [196, 197, 211, 212] }
+        };
+
+        // Create the board
+        function createBoard() {
+            const board = document.getElementById('ludoBoard');
+            
+            // Create base squares
+            for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+                const square = document.createElement('div');
+                square.className = 'square';
+                square.id = `square-${i}`;
+                
+                // Color home areas
+                const row = Math.floor(i / BOARD_SIZE);
+                const col = i % BOARD_SIZE;
+                
+                if (row < 6 && col < 6) square.classList.add('red-home');
+                else if (row < 6 && col >= 9) square.classList.add('yellow-home');
+                else if (row >= 9 && col >= 9) square.classList.add('green-home');
+                else if (row >= 9 && col < 6) square.classList.add('blue-home');
+                
+                // Add safe zones
+                if ((row === 2 && col === 2) || (row === 2 && col === 12) || 
+                    (row === 12 && col === 2) || (row === 12 && col === 12) ||
+                    (row === 7 && col === 0) || (row === 0 && col === 7) ||
+                    (row === 7 && col === 14) || (row === 14 && col === 7)) {
+                    square.classList.add('safe-zone');
+                }
+                
+                board.appendChild(square);
+            }
+        }
+
+        // Place pieces on board
+        function placePieces() {
+            const homePositions = [
+                [1, 1],      // Red piece 1
+                [4, 1],      // Red piece 2
+                [1, 4],      // Red piece 3
+                [4, 4],      // Red piece 4
+                [1, 13],     // Yellow piece 1
+                [1, 10],     // Yellow piece 2
+                [4, 13],     // Yellow piece 3
+                [4, 10],     // Yellow piece 4
+                [13, 13],    // Green piece 1
+                [13, 10],    // Green piece 2
+                [10, 13],    // Green piece 3
+                [10, 10],    // Green piece 4
+                [13, 1],     // Blue piece 1
+                [13, 4],     // Blue piece 2
+                [10, 1],     // Blue piece 3
+                [10, 4]      // Blue piece 4
+            ];
+
+            const pieces = document.querySelectorAll('.piece');
+            pieces.forEach(piece => piece.remove());
+
+            let pieceIndex = 0;
+            gameState.players.forEach(player => {
+                for (let i = 0; i < 4; i++) {
+                    const piece = document.createElement('div');
+                    piece.className = `piece ${player}-piece`;
+                    piece.textContent = i + 1;
+                    
+                    const [row, col] = homePositions[pieceIndex];
+                    const square = document.getElementById(`square-${row * BOARD_SIZE + col}`);
+                    square.appendChild(piece);
+                    
+                    pieceIndex++;
+                }
+            });
+        }
+
+        // Roll dice function
+        function rollDice() {
+            const dice = document.getElementById('dice');
+            const message = document.getElementById('message');
+            
+            dice.classList.add('rolling');
+            
+            setTimeout(() => {
+                gameState.lastDice = Math.floor(Math.random() * 6) + 1;
+                dice.textContent = gameState.lastDice;
+                dice.classList.remove('rolling');
+                
+                const playerColors = ['Red', 'Yellow', 'Green', 'Blue'];
+                const currentColor = playerColors[gameState.currentPlayer];
+                
+                if (gameState.lastDice === 6) {
+                    message.textContent = `🎉 ${currentColor} rolled a 6! Roll again!`;
+                    message.className = 'message success';
+                } else {
+                    gameState.currentPlayer = (gameState.currentPlayer + 1) % 4;
+                    message.textContent = `${playerColors[gameState.currentPlayer]} Player's Turn`;
+                    message.className = 'message info';
+                }
+                
+                // Update active player
+                document.querySelectorAll('.player').forEach((el, idx) => {
+                    el.classList.toggle('active', idx === gameState.currentPlayer);
+                });
+            }, 600);
+        }
+
+        // Initialize game
+        createBoard();
+        placePieces();
+
+        // Add keyboard support
+        document.addEventListener('keypress', (e) => {
+            if (e.code === 'Space') {
+                rollDice();
+            }
+        });
+    </script>
+</body>
+</html>
